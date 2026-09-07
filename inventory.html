@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Shop Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="inventory-page">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-store"></i> <span id="shopNameHeader">Shop Name</span></h2>
+            <div class="user-info">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-role" id="userRole">Shop Admin</div>
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <!-- Menu items will be loaded dynamically by MenuManager -->
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <nav class="navbar">
+            <div class="navbar-left">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h3>Inventory</h3>
+            </div>
+            <div class="navbar-right">
+                <button class="btn btn-primary btn-action" id="addProductBtn">
+                    <i class="fas fa-plus"></i> Add Product
+                </button>
+                <button class="btn btn-success btn-action" id="exportInventoryBtn">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
+            </div>
+        </nav>
+
+        <div class="content">
+            <!-- Inventory Controls -->
+            <div class="inventory-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="inventorySearch" placeholder="Search products...">
+                </div>
+
+                <div class="filter-options">
+                    <select id="stockFilter" class="form-control">
+                        <option value="all">All Stock</option>
+                        <option value="low">Low Stock (< 10)</option>
+                        <option value="out">Out of Stock</option>
+                        <option value="in">In Stock</option>
+                    </select>
+
+                    <select id="categoryFilter" class="form-control">
+                        <option value="">All Categories</option>
+                    </select>
+
+                    <select id="typeFilter" class="form-control" style="display: none;">
+                        <option value="">All Types</option>
+                    </select>
+
+                    <button class="btn btn-secondary" id="refreshInventory">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Inventory Stats -->
+            <div class="inventory-stats">
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Total Products</h3>
+                        <div class="value" id="totalProducts">0</div>
+                        <div style="font-size:0.75rem;color:#64748b;margin-top:3px;">
+                            <i class="fas fa-layer-group" style="font-size:0.7rem;"></i>
+                            <span id="totalStockCount">0</span> units in stock
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Low Stock</h3>
+                        <div class="value" id="lowStockCount">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon danger">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Out of Stock</h3>
+                        <div class="value" id="outOfStockCount">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Inventory Value</h3>
+                        <div class="value" id="inventoryValue">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAllProducts">
+                            </th>
+                            <th>Product Name</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Stock</th>
+                            <th>Cost Price</th>
+                            <th>Selling Price</th>
+                            <th>Profit Margin</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTable">
+                        <tr>
+                            <td colspan="11" class="text-center">Loading products...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bulk Action Bar -->
+    <div id="bulkActionBar" class="bulk-action-bar">
+        <div class="bulk-info">
+            <span id="selectedCount">0</span> items selected
+        </div>
+        <div class="bulk-buttons">
+            <button class="btn btn-primary btn-action" id="bulkEditBtn">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger btn-action" id="bulkDeleteBtn">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            <button class="btn btn-secondary btn-action" id="cancelSelection">
+                Cancel
+            </button>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div class="modal" id="bulkEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-layer-group"></i> Bulk Edit Products</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Only fields you change will be updated for the <strong
+                        id="bulkEditCount">0</strong> selected products.
+                </div>
+                <form id="bulkEditForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-tags"></i> Category</label>
+                            <select id="bulkCategory" class="field-toggle-target">
+                                <option value="">No Change</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-list"></i> Type</label>
+                            <select id="bulkType" class="field-toggle-target">
+                                <option value="">No Change</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-money-bill"></i> Cost Price</label>
+                            <div class="input-with-action">
+                                <input type="number" id="bulkCostPrice" step="0.01" placeholder="Leave for no change">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> Selling Price</label>
+                            <div class="input-with-action">
+                                <input type="number" id="bulkSellingPrice" step="0.01"
+                                    placeholder="Leave for no change">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-box"></i> Stock Adjustment</label>
+                            <div class="sku-input-group">
+                                <select id="stockAction" style="width: 100px;">
+                                    <option value="set">Set To</option>
+                                    <option value="add">Add (+)</option>
+                                    <option value="sub">Subtract (-)</option>
+                                </select>
+                                <input type="number" id="bulkStockValue" placeholder="Value">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-exclamation-triangle"></i> Low Stock Alert</label>
+                            <input type="number" id="bulkLowStockAlert" placeholder="Leave for no change">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-sort-numeric-down"></i> Display Priority</label>
+                            <input type="number" id="bulkPriority" placeholder="Leave for no change">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-info-circle"></i> Description</label>
+                            <textarea id="bulkDescription" rows="1" placeholder="Leave for no change"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Show to Customers Toggle -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-store"></i> Show to Customers</label>
+                            <select id="bulkShowInStore">
+                                <option value="">No Change</option>
+                                <option value="true">Show (Visible)</option>
+                                <option value="false">Hide (Hidden)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Metadata Fields -->
+                    <div id="bulkDynamicFields" style="display: none;">
+                        <!-- Fields will be dynamically generated here -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-action close-modal">Cancel</button>
+                <button class="btn btn-primary btn-action" id="applyBulkUpdateBtn">
+                    <i class="fas fa-check-circle"></i> Apply
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/menu-manager.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/inventory.js?v=8"></script>
+
+    <!-- Product Modal (Add/Edit) -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-box"></i> Add New Product</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+
+                    <div class="product-photo-section">
+                        <label><i class="fas fa-images"></i> Product Images (Max 5)</label>
+                        <div class="product-images-grid" id="productImagesGrid">
+                            <!-- Image slots will be rendered here -->
+                            <div class="image-slot empty" onclick="window.inventoryManager.showImageSourcePicker()">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                        <div class="photo-info" style="margin-top: 10px;">
+                            <small class="text-muted">First image will be the primary image. Click a slot to
+                                upload.</small>
+                        </div>
+                        <input type="file" id="productImageFile" accept="image/*" multiple style="display: none;">
+                        <input type="file" id="productCameraFile" accept="image/*" capture="environment" style="display: none;">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-signature"></i> Product Name *</label>
+                            <input type="text" id="productName" placeholder="Enter product name" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-barcode"></i> SKU / Barcode *</label>
+                            <div class="sku-input-group">
+                                <input type="text" id="productSKU" placeholder="Enter or generate SKU" required>
+                                <button type="button" class="btn btn-secondary" id="generateSKU" title="Generate SKU">
+                                    <i class="fas fa-random"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-sort-amount-down"></i> Display Priority</label>
+                            <input type="number" id="productPriority" placeholder="1000" value="1000">
+                            <small class="text-muted">Directly control which product appears first on your public
+                                menu.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-tags"></i> Category</label>
+                            <select id="productCategory">
+                                <option value="Other">Other</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Clothing">Clothing</option>
+                                <option value="Food">Food</option>
+                                <option value="Stationery">Stationery</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-list-ul"></i> Product Type</label>
+                            <select id="productType">
+                                <option value="">Select Category First</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-cubes"></i> Stock Quantity *</label>
+                            <input type="number" id="productStock" min="0" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-exclamation-triangle"></i> Low Stock Alert</label>
+                            <input type="number" id="lowStockAlert" min="1" value="3">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-money-bill-wave"></i> Cost Price (Per unit)</label>
+                            <input type="number" id="costPrice" step="0.01" min="0" placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-tag"></i> Selling Price *</label>
+                            <input type="number" id="sellingPrice" step="0.01" min="0" placeholder="0.00" required>
+                        </div>
+                    </div>
+
+                    <div id="dynamicFields">
+                        <!-- Dynamic fields based on business type will be injected here -->
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <label><i class="fas fa-align-left"></i> Description</label>
+                        <textarea id="productDescription" rows="2"
+                            placeholder="Optional product description"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="showInStore" checked 
+                                   style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+                            <span><i class="fas fa-store"></i> Show to Customers</span>
+                        </label>
+                        <small class="text-muted">Uncheck to hide this product from your public store page.</small>
+                    </div>
+
+                    <!-- Variants Section -->
+                    <div class="form-group" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="enableVariants"
+                                   style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+                            <span><i class="fas fa-layer-group"></i> This product has variants (sizes, colors, etc.)</span>
+                        </label>
+                        <small class="text-muted">Enable to add multiple variants. Each variant will be saved as a separate product with its own stock and price.</small>
+                    </div>
+
+                    <div id="variantsSection" style="display: none; margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0; font-size: 0.95rem; font-weight: 700; color: #334155;">
+                                <i class="fas fa-layer-group"></i> Product Variants
+                            </h4>
+                            <button type="button" class="btn btn-sm btn-secondary" id="addVariantBtn">
+                                <i class="fas fa-plus"></i> Add Variant Manually
+                            </button>
+                        </div>
+
+                        <!-- Smart Auto-Generator: reads attributes from the Product Attributes section above -->
+                        <div id="variantAutoGenerator" style="background: white; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i class="fas fa-bolt" style="color: #f59e0b; font-size: 0.85rem;"></i>
+                                <span style="font-size: 0.85rem; font-weight: 700; color: #334155;">Auto-Generate Combinations</span>
+                            </div>
+                            <p class="text-muted" style="font-size: 0.78rem; margin-bottom: 12px; line-height: 1.5;">
+                                Uses the <strong>Product Attributes</strong> you set above to generate all combinations automatically.
+                                For example, if you added Colors: <em>Red, Blue</em> and Sizes: <em>S, M</em> — it will generate <em>Red/S, Red/M, Blue/S, Blue/M</em>.
+                            </p>
+
+                            <!-- Attribute preview (auto-populated from category attributes above) -->
+                            <div id="variantBuilderPreview" style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 12px; min-height: 40px;">
+                                <span id="variantBuilderPreviewText" style="font-size: 0.78rem; color: #94a3b8; font-style: italic;">
+                                    Set Product Attributes above first, then click "Generate Variants".
+                                </span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 10px; align-items: end;">
+                                <div>
+                                    <label style="font-size: 0.75rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Default Stock / Variant</label>
+                                    <input type="number" id="builderDefaultStock" placeholder="10" min="0" style="width: 100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none; background: white;">
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.75rem; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Default Price</label>
+                                    <input type="number" id="builderDefaultPrice" placeholder="Base Price" step="0.01" min="0" style="width: 100%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; outline: none; background: white;">
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-primary" id="generateCombinationsBtn" style="width: 100%; padding: 8px 12px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fas fa-bolt"></i> Generate Variants
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Generated / Manual Variant Rows Container -->
+                        <div id="variantsList"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-action" id="deleteProductBtn" style="display: none;">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+                <div class="footer-actions">
+                    <button class="btn btn-secondary btn-action close-modal">Cancel</button>
+                    <button class="btn btn-primary btn-action" id="saveProductBtn" form="productForm">
+                        <i class="fas fa-save"></i> Save Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Stat Card Breakdown Tooltip -->
+    <style>
+        #statBreakdownBox{position:fixed;z-index:9999;background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:14px 16px;min-width:220px;max-width:280px;font-size:.8rem;pointer-events:none;opacity:0;transform:scale(.95) translateY(-4px);transition:opacity .15s ease,transform .15s ease}
+        #statBreakdownBox.visible{opacity:1;transform:scale(1) translateY(0);pointer-events:auto}
+        #statBreakdownBox .sb-title{font-weight:700;font-size:.75rem;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+        #statBreakdownBox .sb-title button{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:1rem;line-height:1;padding:0}
+        #statBreakdownBox .sb-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid #f1f5f9;gap:12px}
+        #statBreakdownBox .sb-row:last-child{border-bottom:none}
+        #statBreakdownBox .sb-row.divider{border-bottom:1px dashed #cbd5e1;padding:0;margin:4px 0}
+        #statBreakdownBox .sb-label{color:#64748b;flex:1}
+        #statBreakdownBox .sb-val{font-weight:700;color:#1e293b;white-space:nowrap}
+        .stat-card[data-breakdown]{cursor:context-menu}
+        .stat-card[data-breakdown]:hover{box-shadow:0 4px 20px rgba(0,0,0,.12)}
+    </style>
+    <script>
+    (function(){
+        var box=document.createElement('div');
+        box.id='statBreakdownBox';
+        document.body.appendChild(box);
+
+        function show(card,x,y){
+            var raw=card.getAttribute('data-breakdown');
+            if(!raw)return;
+            var rows;try{rows=JSON.parse(raw)}catch(e){return}
+            var title=card.querySelector('h3')?.textContent||'Breakdown';
+            box.innerHTML='<div class="sb-title"><span>📊 '+title+'</span><button onclick="document.getElementById(\'statBreakdownBox\').classList.remove(\'visible\')">×</button></div>'+
+                rows.map(function(r){
+                    if(String(r.label).startsWith('─'))return'<div class="sb-row divider"></div>';
+                    return'<div class="sb-row"><span class="sb-label">'+r.label+'</span><span class="sb-val">'+r.value+'</span></div>';
+                }).join('');
+            var bw=280,bh=300,vw=window.innerWidth,vh=window.innerHeight;
+            var left=x+12,top=y+12;
+            if(left+bw>vw-10)left=x-bw-12;
+            if(top+bh>vh-10)top=y-bh-12;
+            box.style.left=Math.max(8,left)+'px';
+            box.style.top=Math.max(8,top)+'px';
+            box.classList.add('visible');
+        }
+        function hide(){box.classList.remove('visible')}
+
+        document.addEventListener('contextmenu',function(e){
+            var card=e.target.closest('.stat-card[data-breakdown]');
+            if(card){e.preventDefault();show(card,e.clientX,e.clientY)}
+            else if(!e.target.closest('#statBreakdownBox'))hide();
+        });
+        document.addEventListener('click',function(e){
+            if(!e.target.closest('#statBreakdownBox')&&!e.target.closest('.stat-card[data-breakdown]'))hide();
+        });
+        var hoverTimer;
+        document.addEventListener('mouseover',function(e){
+            var card=e.target.closest('.stat-card[data-breakdown]');
+            if(card){clearTimeout(hoverTimer);hoverTimer=setTimeout(function(){var r=card.getBoundingClientRect();show(card,r.right-10,r.top)},600)}
+            else{clearTimeout(hoverTimer);}
+        });
+        document.addEventListener('mouseover',function(e){
+            // Keep box open when hovering over it
+            if(e.target.closest('#statBreakdownBox'))clearTimeout(hoverTimer);
+        });
+        document.addEventListener('mouseout',function(e){
+            var card=e.target.closest('.stat-card[data-breakdown]');
+            if(!card)return;
+            // Only hide if leaving the card entirely (not moving to a child)
+            var relTarget=e.relatedTarget;
+            if(relTarget&&(relTarget===card||card.contains(relTarget)||relTarget.closest('#statBreakdownBox')))return;
+            clearTimeout(hoverTimer);
+            hide();
+        });
+        var pressTimer;
+        document.addEventListener('touchstart',function(e){
+            var card=e.target.closest('.stat-card[data-breakdown]');
+            if(card)pressTimer=setTimeout(function(){var t=e.touches[0];show(card,t.clientX,t.clientY)},600);
+        },{passive:true});
+        document.addEventListener('touchend',function(){clearTimeout(pressTimer)});
+    })();
+    </script>
+
+    <!-- Product Detail Lightbox -->
+    <style>
+        #invLightboxOverlay {
+            display:none; position:fixed; inset:0; z-index:10000;
+            background:rgba(0,0,0,0.55); backdrop-filter:blur(4px);
+            align-items:center; justify-content:center; padding:16px;
+        }
+        #invLightboxOverlay.active { display:flex; }
+        #invLightbox {
+            background:#fff; border-radius:16px; width:100%; max-width:560px;
+            max-height:92vh; overflow-y:auto; box-shadow:0 24px 60px rgba(0,0,0,0.25);
+            animation:invLbIn 0.2s ease;
+        }
+        @keyframes invLbIn { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+        #invLightbox .ilb-header {
+            display:flex; align-items:center; gap:14px;
+            padding:18px 20px; border-bottom:1px solid #f1f5f9; position:relative; background:#f8fafc;
+            border-radius:16px 16px 0 0;
+        }
+        #invLightbox .ilb-header img {
+            width:60px; height:60px; border-radius:10px; object-fit:cover;
+            border:1px solid #e2e8f0; flex-shrink:0;
+        }
+        #invLightbox .ilb-title { font-size:1rem; font-weight:700; color:#1e293b; }
+        #invLightbox .ilb-sub   { font-size:0.78rem; color:#64748b; margin-top:3px; }
+        #invLightbox .ilb-close {
+            position:absolute; top:14px; right:14px;
+            background:#e2e8f0; border:none; border-radius:50%;
+            width:32px; height:32px; cursor:pointer; font-size:1rem;
+            display:flex; align-items:center; justify-content:center; color:#64748b;
+        }
+        #invLightbox .ilb-close:hover { background:#cbd5e1; }
+        #invLightbox .ilb-body  { padding:0 20px 20px; }
+        #invLightbox .ilb-section {
+            font-size:0.7rem; font-weight:700; text-transform:uppercase;
+            letter-spacing:0.6px; color:#94a3b8; margin:18px 0 8px;
+            padding-bottom:6px; border-bottom:1px solid #f1f5f9;
+        }
+        #invLightbox .ilb-row {
+            display:flex; justify-content:space-between; align-items:center;
+            padding:7px 0; border-bottom:1px solid #f8fafc;
+        }
+        #invLightbox .ilb-row:last-child { border-bottom:none; }
+        #invLightbox .ilb-label { color:#64748b; font-size:0.82rem; }
+        #invLightbox .ilb-val   { font-weight:700; color:#1e293b; font-size:0.88rem; text-align:right; }
+        #invLightbox .ilb-val.green { color:#16a34a; }
+        #invLightbox .ilb-val.red   { color:#dc2626; }
+        #invLightbox .ilb-val.blue  { color:#2563eb; }
+        #invLightbox .ilb-loading {
+            text-align:center; padding:40px; color:#94a3b8;
+        }
+        #invLightbox .variant-row {
+            background:#f8fafc; border-radius:8px; padding:10px 12px;
+            margin-bottom:6px; font-size:0.82rem;
+        }
+        #invLightbox .variant-row .vr-name { font-weight:700; color:#1e293b; margin-bottom:4px; }
+        #invLightbox .variant-row .vr-meta { display:flex; gap:16px; flex-wrap:wrap; color:#64748b; }
+        #invLightbox .variant-row .vr-meta span { white-space:nowrap; }
+    </style>
+    <script>
+    (function() {
+        var overlay = document.createElement('div');
+        overlay.id = 'invLightboxOverlay';
+        overlay.innerHTML = '<div id="invLightbox"><div class="ilb-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>';
+        document.body.appendChild(overlay);
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') overlay.classList.remove('active');
+        });
+
+        function showLoading() {
+            overlay.classList.add('active');
+            document.getElementById('invLightbox').innerHTML =
+                '<div class="ilb-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        }
+
+        function row(label, value, cls) {
+            return '<div class="ilb-row"><span class="ilb-label">'+label+'</span><span class="ilb-val'+(cls?' '+cls:'')+'">'+value+'</span></div>';
+        }
+
+        window.openProductLightbox = async function(productId) {
+            showLoading();
+            try {
+                // Fetch product + variants + sale data in parallel
+                const [pRes, vRes, siRes] = await Promise.all([
+                    supabaseClient.from('products').select('*').eq('id', productId).maybeSingle(),
+                    supabaseClient.from('product_variants').select('*').eq('product_id', productId).eq('is_active', true).order('variant_name'),
+                    supabaseClient.from('sale_items').select('quantity, unit_price, cost_price, sale_id').eq('product_id', productId)
+                ]);
+
+                const p = pRes.data;
+                const variants = vRes.data || [];
+                const saleItems = siRes.data || [];
+
+                if (!p) { document.getElementById('invLightbox').innerHTML = '<div class="ilb-loading">Product not found</div>'; return; }
+
+                // Calculate financials
+                const totalUnitsSold = saleItems.reduce((s,i) => s + (parseFloat(i.quantity)||0), 0);
+                const totalRevenue   = saleItems.reduce((s,i) => s + (parseFloat(i.unit_price)||0) * (parseFloat(i.quantity)||0), 0);
+                const totalCOGS      = saleItems.reduce((s,i) => {
+                    var c = (i.cost_price !== null && i.cost_price !== undefined) ? parseFloat(i.cost_price) : parseFloat(p.cost_price||0);
+                    return s + c * (parseFloat(i.quantity)||0);
+                }, 0);
+                const totalProfit    = totalRevenue - totalCOGS;
+                const markup         = totalCOGS > 0 ? (totalProfit / totalCOGS * 100).toFixed(1)+'%' : '—';
+
+                // Days in stock
+                const createdAt = new Date(p.created_at || Date.now());
+                const daysInStock = Math.floor((Date.now() - createdAt.getTime()) / (1000*60*60*24));
+
+                // Parse metadata
+                var meta = p.metadata || {};
+                if (typeof meta === 'string') { try { meta = JSON.parse(meta); } catch(e){ meta = {}; } }
+                var attrs = (meta && meta.attributes && typeof meta.attributes === 'object') ? meta.attributes : {};
+
+                // Find size/tag stock map
+                var sizeStockMap = meta.size_stock || attrs.size_stock || null;
+                var sizePriceMap = meta.size_price || attrs.size_price || meta.size_prices || attrs.size_prices || null;
+                var sizeCostMap = meta.size_cost || attrs.size_cost || null;
+                var tagLabel = 'Size';
+                if (!sizeStockMap) {
+                    var tagKeys = ['storage', 'pack', 'portion', 'volume', 'color', 'shade', 'model', 'edition'];
+                    for (var ki = 0; ki < tagKeys.length; ki++) {
+                        var tk = tagKeys[ki];
+                        if (meta[tk+'_stock'] || attrs[tk+'_stock']) {
+                            sizeStockMap = meta[tk+'_stock'] || attrs[tk+'_stock'];
+                            sizePriceMap = meta[tk+'_price'] || attrs[tk+'_price'] || meta[tk+'_prices'] || attrs[tk+'_prices'] || null;
+                            sizeCostMap = meta[tk+'_cost'] || attrs[tk+'_cost'] || null;
+                            tagLabel = tk.charAt(0).toUpperCase() + tk.slice(1);
+                            break;
+                        }
+                    }
+                }
+                if (typeof sizeStockMap === 'string') { try { sizeStockMap = JSON.parse(sizeStockMap); } catch(e){ sizeStockMap = null; } }
+                if (typeof sizePriceMap === 'string') { try { sizePriceMap = JSON.parse(sizePriceMap); } catch(e){ sizePriceMap = null; } }
+                if (typeof sizeCostMap === 'string') { try { sizeCostMap = JSON.parse(sizeCostMap); } catch(e){ sizeCostMap = null; } }
+
+                var hasSizeStock = !!(sizeStockMap && typeof sizeStockMap === 'object' && Object.keys(sizeStockMap).length > 0);
+
+                // Base cost & sell
+                const baseCp = parseFloat(p.cost_price) || 0;
+                const baseSp = parseFloat(p.selling_price) || 0;
+                const rawStock = parseInt(p.stock) || 0;
+
+                // Track size breakdown & metrics
+                var sizeTrackedUnits = 0;
+                var sizeStockCost = 0;
+                var sizeStockSell = 0;
+                var minSizeSp = null, maxSizeSp = null;
+                var minSizeCp = null, maxSizeCp = null;
+                var hasSizePriceDiff = false;
+                var sizesHtml = '';
+
+                if (hasSizeStock) {
+                    var sKeys = Object.keys(sizeStockMap);
+                    sizesHtml = '<div class="ilb-section">'+tagLabel+' Breakdown ('+sKeys.length+')</div>';
+                    sizesHtml += sKeys.map(function(s) {
+                        var sStock = parseInt(sizeStockMap[s]) || 0;
+                        var sSp = (sizePriceMap && sizePriceMap[s] !== undefined && sizePriceMap[s] !== null && sizePriceMap[s] !== '') ? parseFloat(sizePriceMap[s]) : baseSp;
+                        var sCp = (sizeCostMap && sizeCostMap[s] !== undefined && sizeCostMap[s] !== null && sizeCostMap[s] !== '') ? parseFloat(sizeCostMap[s]) : baseCp;
+                        if (isNaN(sSp) || sSp <= 0) sSp = baseSp;
+                        if (isNaN(sCp) || sCp <= 0) sCp = baseCp;
+
+                        if (sStock > 0) {
+                            sizeStockCost += sStock * sCp;
+                            sizeStockSell += sStock * sSp;
+                            sizeTrackedUnits += sStock;
+                        }
+
+                        if (sSp !== baseSp) hasSizePriceDiff = true;
+                        minSizeSp = minSizeSp === null ? sSp : Math.min(minSizeSp, sSp);
+                        maxSizeSp = maxSizeSp === null ? sSp : Math.max(maxSizeSp, sSp);
+                        minSizeCp = minSizeCp === null ? sCp : Math.min(minSizeCp, sCp);
+                        maxSizeCp = maxSizeCp === null ? sCp : Math.max(maxSizeCp, sCp);
+
+                        var sMgn = sCp > 0 ? ((sSp - sCp) / sCp * 100).toFixed(1) + '%' : '—';
+                        return '<div class="variant-row">'+
+                            '<div class="vr-name">'+tagLabel+' '+s+'</div>'+
+                            '<div class="vr-meta">'+
+                                '<span>📦 Stock: <strong>'+sStock+'</strong></span>'+
+                                '<span>💰 CP: <strong>'+formatCurrency(sCp)+'</strong></span>'+
+                                '<span>🏷️ SP: <strong>'+formatCurrency(sSp)+'</strong></span>'+
+                                '<span>📈 Margin: <strong>'+sMgn+'</strong></span>'+
+                                '<span>💵 Value: <strong>'+formatCurrency(sStock * sSp)+'</strong></span>'+
+                            '</div>'+
+                        '</div>';
+                    }).join('');
+                }
+
+                // Unassigned base units
+                var unassignedBaseUnits = hasSizeStock ? Math.max(0, rawStock - sizeTrackedUnits) : rawStock;
+                if (unassignedBaseUnits > 0 && baseSp > 0) {
+                    minSizeSp = minSizeSp === null ? baseSp : Math.min(minSizeSp, baseSp);
+                    maxSizeSp = maxSizeSp === null ? baseSp : Math.max(maxSizeSp, baseSp);
+                }
+
+                // Total stock cost & sell value
+                let totalStockCost = sizeStockCost + (unassignedBaseUnits * baseCp);
+                let totalStockSell = sizeStockSell + (unassignedBaseUnits * baseSp);
+
+                // Base product margin
+                const baseMargin = (baseSp <= 0 && sizeStockCost > 0 && sizeStockSell > 0)
+                    ? ((sizeStockSell - sizeStockCost) / sizeStockCost * 100).toFixed(1) + '%'
+                    : (baseCp > 0 ? ((baseSp - baseCp) / baseCp * 100).toFixed(1) + '%' : '—');
+
+                // Process DB variants (supporting variant size_stock, size_price, size_cost)
+                const variantStock = variants.reduce((s, v) => s + (parseInt(v.stock) || 0), 0);
+                var minVarSp = null, maxVarSp = null;
+                var hasVarPriceDiff = false;
+
+                var variantsProcessed = variants.map(function(v) {
+                    const vStock = parseInt(v.stock) || 0;
+                    const rawVCp = parseFloat(v.cost_price);
+                    const vCp = (!isNaN(rawVCp) && rawVCp > 0) ? rawVCp : baseCp;
+                    const rawVSp = parseFloat(v.price);
+                    const vSp = (!isNaN(rawVSp) && rawVSp > 0) ? rawVSp : baseSp;
+
+                    var vAttrs = v.attributes || {};
+                    if (typeof vAttrs === 'string') { try { vAttrs = JSON.parse(vAttrs); } catch(e){ vAttrs = {}; } }
+
+                    var vSizeStock = vAttrs.size_stock || vAttrs.storage_stock || null;
+                    var vSizePrice = vAttrs.size_price || vAttrs.size_prices || null;
+                    var vSizeCost = vAttrs.size_cost || null;
+
+                    if (!vSizeStock) {
+                        var vTagKeys = ['storage', 'pack', 'portion', 'volume', 'color', 'shade', 'model', 'edition'];
+                        for (var vi = 0; vi < vTagKeys.length; vi++) {
+                            var vtk = vTagKeys[vi];
+                            if (vAttrs[vtk+'_stock']) {
+                                vSizeStock = vAttrs[vtk+'_stock'];
+                                vSizePrice = vAttrs[vtk+'_price'] || vAttrs[vtk+'_prices'] || null;
+                                vSizeCost = vAttrs[vtk+'_cost'] || null;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (typeof vSizeStock === 'string') { try { vSizeStock = JSON.parse(vSizeStock); } catch(e){ vSizeStock = null; } }
+                    if (typeof vSizePrice === 'string') { try { vSizePrice = JSON.parse(vSizePrice); } catch(e){ vSizePrice = null; } }
+                    if (typeof vSizeCost === 'string') { try { vSizeCost = JSON.parse(vSizeCost); } catch(e){ vSizeCost = null; } }
+
+                    var vSellTotal = 0;
+                    var vCostTotal = 0;
+                    var vUnitsTracked = 0;
+                    var vMinSp = null, vMaxSp = null;
+                    var vSubItems = [];
+
+                    if (vSizeStock && typeof vSizeStock === 'object' && Object.keys(vSizeStock).length > 0) {
+                        for (var [sKey, sQ] of Object.entries(vSizeStock)) {
+                            var qty = parseInt(sQ) || 0;
+                            if (qty <= 0) continue;
+                            var effSp = vSp;
+                            if (vSizePrice && vSizePrice[sKey] !== undefined && vSizePrice[sKey] !== null && vSizePrice[sKey] !== '') {
+                                var parsedSp = parseFloat(vSizePrice[sKey]);
+                                if (!isNaN(parsedSp) && parsedSp > 0) effSp = parsedSp;
+                            }
+                            var effCp = vCp;
+                            if (vSizeCost && vSizeCost[sKey] !== undefined && vSizeCost[sKey] !== null && vSizeCost[sKey] !== '') {
+                                var parsedCp = parseFloat(vSizeCost[sKey]);
+                                if (!isNaN(parsedCp) && parsedCp > 0) effCp = parsedCp;
+                            }
+                            vSellTotal += qty * effSp;
+                            vCostTotal += qty * effCp;
+                            vUnitsTracked += qty;
+                            vMinSp = vMinSp === null ? effSp : Math.min(vMinSp, effSp);
+                            vMaxSp = vMaxSp === null ? effSp : Math.max(vMaxSp, effSp);
+
+                            vSubItems.push({
+                                name: sKey,
+                                stock: qty,
+                                cp: effCp,
+                                sp: effSp,
+                                margin: effCp > 0 ? ((effSp - effCp) / effCp * 100).toFixed(1) + '%' : '—',
+                                value: qty * effSp
+                            });
+                        }
+
+                        if (vStock > vUnitsTracked) {
+                            var rem = vStock - vUnitsTracked;
+                            vSellTotal += rem * vSp;
+                            vCostTotal += rem * vCp;
+                            if (vSp > 0) {
+                                vMinSp = vMinSp === null ? vSp : Math.min(vMinSp, vSp);
+                                vMaxSp = vMaxSp === null ? vSp : Math.max(vMaxSp, vSp);
+                            }
+                        }
+                    } else {
+                        vSellTotal = vStock * vSp;
+                        vCostTotal = vStock * vCp;
+                        vMinSp = vSp;
+                        vMaxSp = vSp;
+                    }
+
+                    totalStockCost += vCostTotal;
+                    totalStockSell += vSellTotal;
+
+                    if (vMinSp !== null) {
+                        minVarSp = minVarSp === null ? vMinSp : Math.min(minVarSp, vMinSp);
+                        maxVarSp = maxVarSp === null ? vMaxSp : Math.max(maxVarSp, vMaxSp);
+                        if (vMinSp !== baseSp || vMaxSp !== baseSp) hasVarPriceDiff = true;
+                    }
+
+                    var vMgn = vCostTotal > 0 ? ((vSellTotal - vCostTotal) / vCostTotal * 100).toFixed(1) + '%' : '—';
+                    var attrStr = Object.entries(vAttrs)
+                        .filter(function(e){
+                            return !['variant_images','product_images','product_image','variant_group'].includes(e[0]) &&
+                                typeof e[1] !== 'object' &&
+                                !(e[0] === 'name' && String(e[1]).toLowerCase() === String(v.variant_name).toLowerCase());
+                        })
+                        .map(function(e){ return e[0]+': '+e[1]; }).join(' · ') || '';
+
+                    var spDisplay = (vMinSp !== null && vMinSp !== vMaxSp)
+                        ? formatCurrency(vMinSp) + ' – ' + formatCurrency(vMaxSp)
+                        : formatCurrency(vSp);
+
+                    var subItemsHtml = '';
+                    if (vSubItems.length > 0) {
+                        subItemsHtml = '<div style="margin-top:8px; padding-top:6px; border-top:1px dashed #e2e8f0; display:flex; flex-wrap:wrap; gap:6px;">' +
+                            vSubItems.map(function(item) {
+                                return '<span style="background:#fff; border:1px solid #e2e8f0; border-radius:4px; padding:3px 8px; font-size:0.75rem; color:#475569;">' +
+                                    '<strong>Size ' + item.name + ':</strong> 📦 ' + item.stock + ' · 💰 ' + formatCurrency(item.cp) + ' · 🏷️ ' + formatCurrency(item.sp) + ' · 💵 ' + formatCurrency(item.value) +
+                                '</span>';
+                            }).join('') +
+                        '</div>';
+                    }
+
+                    return '<div class="variant-row">'+
+                        '<div class="vr-name">'+v.variant_name+(attrStr ? ' <small style="font-weight:400;color:#94a3b8;">'+attrStr+'</small>' : '')+'</div>'+
+                        '<div class="vr-meta">'+
+                            '<span>📦 Stock: <strong>'+v.stock+'</strong></span>'+
+                            '<span>💰 CP: <strong>'+formatCurrency(vCp)+'</strong></span>'+
+                            '<span>🏷️ SP: <strong>'+spDisplay+'</strong></span>'+
+                            '<span>📈 Margin: <strong>'+vMgn+'</strong></span>'+
+                            '<span>💵 Value: <strong>'+formatCurrency(vSellTotal)+'</strong></span>'+
+                        '</div>'+
+                        subItemsHtml+
+                    '</div>';
+                });
+
+                // Total units across all
+                const totalStock = (hasSizeStock ? Math.max(rawStock, sizeTrackedUnits) : rawStock) + variantStock;
+                const potentialProfit = totalStockSell - totalStockCost;
+                const totalStockMarkup = totalStockCost > 0 ? ((potentialProfit / totalStockCost) * 100).toFixed(1) + '%' : '—';
+
+                // Variants HTML
+                var variantsHtml = '';
+                if (variants.length > 0) {
+                    variantsHtml = '<div class="ilb-section">Variants ('+variants.length+')</div>' + variantsProcessed.join('');
+                }
+
+                // Selling price display string with range if variants or sizes differ
+                var sellingPriceDisplay = formatCurrency(baseSp);
+                if (baseSp > 0) {
+                    if (hasSizeStock && hasSizePriceDiff && minSizeSp !== null) {
+                        sellingPriceDisplay += ' <small style="color:#64748b;font-weight:500;">(Size range: ' + formatCurrency(minSizeSp) + ' – ' + formatCurrency(maxSizeSp) + ')</small>';
+                    } else if (variants.length > 0 && hasVarPriceDiff && minVarSp !== null) {
+                        sellingPriceDisplay += ' <small style="color:#64748b;font-weight:500;">(Variant range: ' + formatCurrency(minVarSp) + ' – ' + formatCurrency(maxVarSp) + ')</small>';
+                    }
+                } else if (hasSizeStock && minSizeSp !== null && minSizeSp > 0) {
+                    sellingPriceDisplay = (minSizeSp === maxSizeSp)
+                        ? formatCurrency(minSizeSp)
+                        : formatCurrency(minSizeSp) + ' – ' + formatCurrency(maxSizeSp) + ' <small style="color:#64748b;font-weight:500;">(Size pricing)</small>';
+                } else if (variants.length > 0 && minVarSp !== null && minVarSp > 0) {
+                    sellingPriceDisplay = (minVarSp === maxVarSp)
+                        ? formatCurrency(minVarSp)
+                        : formatCurrency(minVarSp) + ' – ' + formatCurrency(maxVarSp) + ' <small style="color:#64748b;font-weight:500;">(Variant pricing)</small>';
+                }
+
+                // Base stock display string
+                var baseStockDisplay = rawStock + ' units';
+                if (hasSizeStock) {
+                    if (unassignedBaseUnits === 0) {
+                        baseStockDisplay = '0 units <small style="color:#64748b;font-weight:400;">(All ' + sizeTrackedUnits + ' allocated to ' + tagLabel.toLowerCase() + 's)</small>';
+                    } else {
+                        baseStockDisplay = unassignedBaseUnits + ' units <small style="color:#64748b;font-weight:400;">(' + sizeTrackedUnits + ' in ' + tagLabel.toLowerCase() + 's)</small>';
+                    }
+                }
+
+                document.getElementById('invLightbox').innerHTML =
+                    '<div class="ilb-header">'+
+                        '<img src="'+(p.product_image||'https://via.placeholder.com/60?text=?')+'" alt="">'+
+                        '<div>'+
+                            '<div class="ilb-title">'+p.product_name+'</div>'+
+                            '<div class="ilb-sub">'+
+                                (p.type||'General')+' · SKU: '+(p.sku||'N/A')+
+                                (variants.length ? ' · '+variants.length+' variant'+(variants.length>1?'s':'') : '')+
+                            '</div>'+
+                        '</div>'+
+                        '<button class="ilb-close" onclick="document.getElementById(\'invLightboxOverlay\').classList.remove(\'active\')">×</button>'+
+                    '</div>'+
+                    '<div class="ilb-body">'+
+
+                        '<div class="ilb-section">Current Stock</div>'+
+                        row('Total Units in Stock', '<strong style="font-size:1.1rem;">'+totalStock+'</strong>', 'blue')+
+                        row('Days Since Added', daysInStock+' days', '')+
+                        row('Total Units Ever Sold', totalUnitsSold+' units', '')+
+                        row('Total Stock Cost (est.)', formatCurrency(totalStockCost), '')+
+                        row('Total Stock Value (est.)', formatCurrency(totalStockSell), 'green')+
+                        row('Potential Profit if Sold', formatCurrency(potentialProfit), potentialProfit >= 0 ? 'green' : 'red')+
+                        (totalStockCost > 0 ? row('Potential Stock Markup', totalStockMarkup, parseFloat(totalStockMarkup) >= 0 ? 'green' : 'red') : '')+
+
+                        '<div class="ilb-section">Base Product Pricing</div>'+
+                        row('Cost Price', formatCurrency(baseCp), '')+
+                        row('Selling Price', sellingPriceDisplay, '')+
+                        row('Markup', baseMargin, parseFloat(baseMargin)>0?'green':'red')+
+                        row('Base Stock', baseStockDisplay, '')+
+
+                        '<div class="ilb-section">Sales Performance (All Time)</div>'+
+                        row('Units Sold', totalUnitsSold, '')+
+                        row('Total Revenue', formatCurrency(totalRevenue), 'green')+
+                        row('Total COGS', formatCurrency(totalCOGS), '')+
+                        row('Gross Profit', formatCurrency(totalProfit), totalProfit>=0?'green':'red')+
+                        row('Markup %', markup, parseFloat(markup)>0?'green':'red')+
+
+                        sizesHtml+
+                        variantsHtml+
+
+                        '<div class="ilb-section">Actions</div>'+
+                        '<div style="display:flex;gap:8px;margin-top:8px;">'+
+                            '<button onclick="window.inventoryManager.showEditModal(\''+p.id+'\');document.getElementById(\'invLightboxOverlay\').classList.remove(\'active\')" class="btn btn-sm btn-primary" style="flex:1;"><i class="fas fa-edit"></i> Edit Product</button>'+
+                            '<a href="sales.html" class="btn btn-sm btn-success" style="flex:1;text-align:center;"><i class="fas fa-chart-bar"></i> Sales Report</a>'+
+                        '</div>'+
+                    '</div>';
+
+            } catch(e) {
+                console.error(e);
+                document.getElementById('invLightbox').innerHTML = '<div class="ilb-loading">Error loading product details</div>';
+            }
+        };
+
+        // Click delegation — open lightbox on row click, but not on action buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#invLightboxOverlay')) return;
+            if (e.target.closest('.action-buttons')) return;
+            if (e.target.closest('.edit-product-btn, .delete-product-btn, .product-checkbox')) return;
+            var row = e.target.closest('#inventoryTable tr[data-product-id]');
+            if (row) {
+                window.openProductLightbox(row.getAttribute('data-product-id'));
+            }
+        });
+    })();
+    </script>
+
+</body>
+
+</html>

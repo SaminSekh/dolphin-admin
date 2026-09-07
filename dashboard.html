@@ -1,0 +1,775 @@
+<!-- Shop owner dashbord  -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Dashboard - Shop Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-store"></i> <span id="shopNameHeader">Shop Name</span></h2>
+            <div class="shop-info">
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-role" id="userRole">Shop Admin</div>
+            </div>
+        </div>
+
+        <ul class="nav-links">
+            <!-- Menu items will be loaded dynamically by MenuManager -->
+            <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <div class="navbar-left">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h3 id="pageTitle">Welcome</h3>
+            </div>
+            <div class="navbar-right" id="navbarRight">
+                <div class="user-menu">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <div class="user-details">
+                        <div class="user-fullname" id="userFullName">Loading...</div>
+                        <div class="user-email" id="userEmail">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="content">
+
+
+            <!-- Dashboard Content -->
+            <div id="dashboardContent">
+                <!-- Welcome Section -->
+                <div class="welcome-section">
+                    <div class="welcome-header">
+                        <div class="welcome-text">
+                            <h2>Welcome back, <span id="welcomeName">User</span>!</h2>
+                            <p>Manage your shop efficiently with our comprehensive dashboard.</p>
+                        </div>
+                        <div class="time-filter">
+                            <div class="select-wrapper">
+                                <i class="fas fa-calendar-alt filter-icon"></i>
+                                <select id="timeRangeFilter" class="form-control filter-select">
+                                    <option value="today">Today</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="week">This Week</option>
+                                    <option value="month">This Month</option>
+                                    <option value="year">This Year</option>
+                                    <option value="custom">Date Range</option>
+                                </select>
+                            </div>
+                            <div id="customDateRange" class="custom-date-inputs" style="display: none;">
+                                <input type="date" id="startDate" class="form-control date-input">
+                                <input type="date" id="endDate" class="form-control date-input">
+                                <button id="applyCustomRange"
+                                    class="btn btn-primary btn-action btn-sm btn-narrow">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <!-- Group 1: Key Financials -->
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Shop Balance</h3>
+                            <div class="value" id="currentBalance">0.00</div>
+                            <small style="color: var(--gray); font-size: 11px; margin-top: 2px; display: block;">(Sales
+                                + Income + Asset) - (Exp + Pending)</small>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-store-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Shop Valuation</h3>
+                            <div class="value" id="shopValuation">0.00</div>
+                            <div class="change info">Total Worth</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon sales">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Sales</h3>
+                            <div class="value" id="totalSales">0.00</div>
+                            <div class="change positive" id="salesFilterLabel">This Month</div>
+                            <div style="font-size:0.72rem;color:#64748b;margin-top:2px;" id="salesItemCount">0 orders</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon profit">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Profit</h3>
+                            <div class="value" id="totalProfit">0.00</div>
+                            <div class="change positive">Calculated</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon profit">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Profit Margin</h3>
+                            <div class="value" id="profitMargin">0%</div>
+                            <div class="change info">Markup</div>
+                        </div>
+                    </div>
+
+                    <!-- Group 2: Daily & Net Financials -->
+                    <div class="stat-card">
+                        <div class="stat-icon expense">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Today's Expenses</h3>
+                            <div class="value" id="todayExpenses">0.00</div>
+                            <div class="change expense">Today</div>
+                        </div>
+                    </div>
+
+
+
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Credit</h3>
+                            <div class="value" id="totalCredit">0.00</div>
+                            <div class="change warning" id="creditFilterLabel">All Time</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon danger">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending Balance</h3>
+                            <div class="value" id="pendingBalance">0.00</div>
+                            <div class="change danger">Outstanding</div>
+                        </div>
+                    </div>
+
+                    <!-- Group 3: Inventory Valuation -->
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Product Value (Cost)</h3>
+                            <div class="value" id="productCostValue">0.00</div>
+                            <div class="change warning">Inventory Cost</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-piggy-bank"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Product Sell Value</h3>
+                            <div class="value" id="productSellValue">0.00</div>
+                            <div class="change success">Inventory Worth</div>
+                        </div>
+                    </div>
+
+                    <!-- Group 4: Inventory Logistics -->
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-cubes"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Product Count</h3>
+                            <div class="value" id="productCount">0</div>
+                            <div class="change success">Total Items</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon credit">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>In Stock</h3>
+                            <div class="value" id="inStock">0</div>
+                            <div class="change positive">Units</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon expense">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Out of Stock</h3>
+                            <div class="value" id="outOfStock">0</div>
+                            <div class="change negative">Products</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Charts and Tables Row -->
+                <div class="chart-row">
+                    <!-- Sales Chart -->
+                    <div class="chart-container-modern" id="salesChartContainer">
+                        <div class="chart-header">
+                            <h4><i class="fas fa-chart-line"></i> Sales Trend (Last 7 Days)</h4>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Top Products -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h4><i class="fas fa-star"></i> Top 5 Products</h4>
+                        </div>
+                        <div class="top-products-list" id="topProductsList">
+                            <div class="empty-state">
+                                <i class="fas fa-box-open fa-2x"></i>
+                                <p>No sales data yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="pos.html" class="btn btn-primary btn-action">
+                        <i class="fas fa-cash-register"></i> New Sale
+                    </a>
+                    <a href="inventory.html" class="btn btn-success btn-action">
+                        <i class="fas fa-plus"></i> Add Product
+                    </a>
+                    <a href="credit.html" class="btn btn-warning btn-action">
+                        <i class="fas fa-credit-card"></i> Check Credits
+                    </a>
+                    <a href="expenses.html" class="btn btn-danger btn-action">
+                        <i class="fas fa-money-bill-wave"></i> Add Expense
+                    </a>
+                </div>
+
+                <!-- Recent Sales -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <i class="fas fa-history"></i> Recent Sales
+                        </div>
+                        <div class="table-actions">
+                            <a href="sales.html" class="btn btn-primary btn-sm btn-action">
+                                <i class="fas fa-eye"></i> View All
+                            </a>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Sold By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentSales">
+                            <tr>
+                                <td colspan="7" class="text-center">No sales yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Low Stock Alert -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">
+                            <i class="fas fa-exclamation-triangle"></i> Low Stock Alert
+                        </div>
+                        <div class="table-actions">
+                            <a href="inventory.html" class="btn btn-warning btn-sm btn-action">
+                                <i class="fas fa-box"></i> Manage Inventory
+                            </a>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Current Stock</th>
+                                <th>Min Stock</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lowStockTable">
+                            <tr>
+                                <td colspan="6" class="text-center">No low stock items</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Staff Online Section -->
+            <div class="table-container" id="staffOnlineSection">
+                <div class="table-header">
+                    <div class="table-title">
+                        <i class="fas fa-circle" style="color: #22c55e; font-size: 0.6rem;"></i> Staff Online
+                    </div>
+                </div>
+                <div id="staffOnlineList" style="padding: 15px;">
+                    <div class="text-center text-muted" style="padding: 20px;">Loading...</div>
+                </div>
+            </div>
+        </div> <!-- End Dashboard Content -->
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/menu-manager.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/shop-dashboard.js?v=3"></script>
+
+    <!-- Stat Card Breakdown Tooltip -->
+    <style>
+        #statBreakdownBox {
+            position: fixed;
+            z-index: 9999;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            padding: 14px 16px;
+            min-width: 220px;
+            max-width: 280px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.95) translateY(-4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+        #statBreakdownBox.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+        #statBreakdownBox .sb-title {
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        #statBreakdownBox .sb-title button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            font-size: 1rem;
+            line-height: 1;
+            padding: 0;
+        }
+        #statBreakdownBox .sb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 12px;
+        }
+        #statBreakdownBox .sb-row:last-child { border-bottom: none; }
+        #statBreakdownBox .sb-row.divider {
+            border-bottom: 1px dashed #cbd5e1;
+            padding: 0;
+            margin: 4px 0;
+        }
+        #statBreakdownBox .sb-label { color: #64748b; flex: 1; }
+        #statBreakdownBox .sb-val { font-weight: 700; color: #1e293b; white-space: nowrap; }
+        .stat-card[data-breakdown] { cursor: context-menu; }
+        .stat-card[data-breakdown]:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+    </style>
+    <script>
+    (function() {
+        var box = document.createElement('div');
+        box.id = 'statBreakdownBox';
+        document.body.appendChild(box);
+
+        function show(card, x, y) {
+            var raw = card.getAttribute('data-breakdown');
+            if (!raw) return;
+            var rows;
+            try { rows = JSON.parse(raw); } catch(e) { return; }
+
+            var title = card.querySelector('h3')?.textContent || 'Breakdown';
+            box.innerHTML = '<div class="sb-title"><span>📊 ' + title + '</span><button onclick="document.getElementById(\'statBreakdownBox\').classList.remove(\'visible\')">×</button></div>' +
+                rows.map(function(r) {
+                    if (!r.label && !r.value) return '';
+                    if (String(r.label).startsWith('─')) return '<div class="sb-row divider"></div>';
+                    return '<div class="sb-row"><span class="sb-label">' + r.label + '</span><span class="sb-val">' + r.value + '</span></div>';
+                }).join('');
+
+            // Position near cursor, keep within viewport
+            var bw = 280, bh = 260;
+            var vw = window.innerWidth, vh = window.innerHeight;
+            var left = x + 12;
+            var top = y + 12;
+            if (left + bw > vw - 10) left = x - bw - 12;
+            if (top + bh > vh - 10) top = y - bh - 12;
+            box.style.left = Math.max(8, left) + 'px';
+            box.style.top  = Math.max(8, top)  + 'px';
+            box.classList.add('visible');
+        }
+
+        function hide() { box.classList.remove('visible'); }
+
+        // Right-click on any stat card with breakdown data
+        document.addEventListener('contextmenu', function(e) {
+            var card = e.target.closest('.stat-card[data-breakdown]');
+            if (card) {
+                e.preventDefault();
+                show(card, e.clientX, e.clientY);
+            } else if (!e.target.closest('#statBreakdownBox')) {
+                hide();
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#statBreakdownBox') && !e.target.closest('.stat-card[data-breakdown]')) {
+                hide();
+            }
+        });
+
+        // Also show on hover (after short delay) and hide on mouse leave
+        var hoverTimer;
+        document.addEventListener('mouseover', function(e) {
+            var card = e.target.closest('.stat-card[data-breakdown]');
+            if (card) {
+                clearTimeout(hoverTimer);
+                hoverTimer = setTimeout(function() {
+                    var r = card.getBoundingClientRect();
+                    show(card, r.right - 10, r.top);
+                }, 600);
+            } else { clearTimeout(hoverTimer); }
+        });
+        document.addEventListener('mouseout', function(e) {
+            var card = e.target.closest('.stat-card[data-breakdown]');
+            if (!card) return;
+            var rel = e.relatedTarget;
+            if (rel && (rel === card || card.contains(rel) || rel.closest('#statBreakdownBox'))) return;
+            clearTimeout(hoverTimer);
+            hide();
+        });
+
+        // Long press for mobile
+        var pressTimer;
+        document.addEventListener('touchstart', function(e) {
+            var card = e.target.closest('.stat-card[data-breakdown]');
+            if (card) {
+                pressTimer = setTimeout(function() {
+                    var t = e.touches[0];
+                    show(card, t.clientX, t.clientY);
+                }, 600);
+            }
+        }, { passive: true });
+        document.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+    })();
+    </script>
+
+    <!-- Product / Sale Detail Lightbox -->
+    <style>
+        #dashLightboxOverlay {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(3px);
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #dashLightboxOverlay.active { display: flex; }
+        #dashLightbox {
+            background: #fff; border-radius: 16px; width: 100%; max-width: 480px;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            animation: lbSlideIn 0.2s ease;
+        }
+        @keyframes lbSlideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        #dashLightbox .lb-header {
+            display: flex; align-items: center; gap: 14px;
+            padding: 18px 20px; border-bottom: 1px solid #f1f5f9; position: relative;
+        }
+        #dashLightbox .lb-header img {
+            width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+            border: 1px solid #e2e8f0; flex-shrink: 0;
+        }
+        #dashLightbox .lb-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
+        #dashLightbox .lb-sub   { font-size: 0.78rem; color: #64748b; margin-top: 2px; }
+        #dashLightbox .lb-close {
+            position: absolute; top: 14px; right: 14px;
+            background: #f1f5f9; border: none; border-radius: 50%;
+            width: 30px; height: 30px; cursor: pointer; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center; color: #64748b;
+        }
+        #dashLightbox .lb-close:hover { background: #e2e8f0; }
+        #dashLightbox .lb-body  { padding: 16px 20px; }
+        #dashLightbox .lb-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 0; border-bottom: 1px solid #f8fafc;
+        }
+        #dashLightbox .lb-row:last-child { border-bottom: none; }
+        #dashLightbox .lb-label { color: #64748b; font-size: 0.82rem; }
+        #dashLightbox .lb-val   { font-weight: 700; color: #1e293b; font-size: 0.88rem; }
+        #dashLightbox .lb-section {
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.6px; color: #94a3b8; margin: 14px 0 6px;
+        }
+        #dashLightbox .lb-loading {
+            text-align: center; padding: 30px; color: #94a3b8; font-size: 0.9rem;
+        }
+    </style>
+    <script>
+    (function() {
+        // Create lightbox DOM
+        var overlay = document.createElement('div');
+        overlay.id = 'dashLightboxOverlay';
+        overlay.innerHTML = '<div id="dashLightbox"><div class="lb-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div>';
+        document.body.appendChild(overlay);
+
+        // Close on overlay click
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') overlay.classList.remove('active');
+        });
+
+        function fmt(v) {
+            if (v === null || v === undefined || v === '') return '—';
+            return v;
+        }
+
+        function showLoading() {
+            overlay.classList.add('active');
+            document.getElementById('dashLightbox').innerHTML =
+                '<div class="lb-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+        }
+
+        function renderProduct(p, extra) {
+            var margin = p.cost_price > 0
+                ? ((p.selling_price - p.cost_price) / p.cost_price * 100).toFixed(1) + '%'
+                : '—';
+            var stockStatus = p.stock < 1 ? '🔴 Out of Stock' : p.stock < 10 ? '🟡 Low Stock' : '🟢 In Stock';
+
+            document.getElementById('dashLightbox').innerHTML =
+                '<div class="lb-header">' +
+                    '<img src="' + (p.product_image || 'https://via.placeholder.com/56?text=?') + '" alt="">' +
+                    '<div><div class="lb-title">' + p.product_name + '</div>' +
+                    '<div class="lb-sub">' + (p.type || 'General') + (p.sku ? ' · SKU: ' + p.sku : '') + '</div></div>' +
+                    '<button class="lb-close" onclick="document.getElementById(\'dashLightboxOverlay\').classList.remove(\'active\')">×</button>' +
+                '</div>' +
+                '<div class="lb-body">' +
+                    '<div class="lb-section">Pricing</div>' +
+                    '<div class="lb-row"><span class="lb-label">Cost Price</span><span class="lb-val">' + formatCurrency(p.cost_price || 0) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Selling Price</span><span class="lb-val">' + formatCurrency(p.selling_price || 0) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Markup</span><span class="lb-val">' + margin + '</span></div>' +
+                    '<div class="lb-section">Stock</div>' +
+                    '<div class="lb-row"><span class="lb-label">Units in Stock</span><span class="lb-val">' + fmt(p.stock) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Status</span><span class="lb-val">' + stockStatus + '</span></div>' +
+                    (extra ? extra : '') +
+                    '<div class="lb-section">Actions</div>' +
+                    '<div style="display:flex;gap:8px;margin-top:4px;">' +
+                        '<a href="inventory.html" class="btn btn-sm btn-primary" style="flex:1;text-align:center;"><i class="fas fa-edit"></i> Edit in Inventory</a>' +
+                        '<a href="pos.html" class="btn btn-sm btn-success" style="flex:1;text-align:center;"><i class="fas fa-cash-register"></i> Sell Now</a>' +
+                    '</div>' +
+                '</div>';
+        }
+
+        function renderSale(sale, items) {
+            var payBadge = { cash: '🟢', credit: '🟡', card: '🔵', online: '🟣' };
+            var itemsHtml = items.length > 0
+                ? items.map(function(i) {
+                    return '<div class="lb-row"><span class="lb-label">' + (i.product_name || 'Item') + ' ×' + i.quantity + '</span>' +
+                           '<span class="lb-val">' + formatCurrency(i.total_price || i.unit_price * i.quantity) + '</span></div>';
+                  }).join('')
+                : '<div class="lb-row"><span class="lb-label">No items</span></div>';
+
+            document.getElementById('dashLightbox').innerHTML =
+                '<div class="lb-header">' +
+                    '<div style="width:56px;height:56px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🧾</div>' +
+                    '<div><div class="lb-title">Invoice: ' + (sale.invoice_number || 'N/A') + '</div>' +
+                    '<div class="lb-sub">' + formatDate(sale.created_at) + ' · ' + formatTime(sale.created_at) + '</div></div>' +
+                    '<button class="lb-close" onclick="document.getElementById(\'dashLightboxOverlay\').classList.remove(\'active\')">×</button>' +
+                '</div>' +
+                '<div class="lb-body">' +
+                    '<div class="lb-section">Sale Info</div>' +
+                    '<div class="lb-row"><span class="lb-label">Customer</span><span class="lb-val">' + fmt(sale.buyer_name) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Sold By</span><span class="lb-val">' + fmt(sale.sold_by) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Payment</span><span class="lb-val">' + (payBadge[sale.payment_method] || '⚪') + ' ' + (sale.payment_method || 'cash') + '</span></div>' +
+                    '<div class="lb-section">Items (' + items.length + ')</div>' +
+                    itemsHtml +
+                    '<div class="lb-section">Totals</div>' +
+                    '<div class="lb-row"><span class="lb-label">Discount</span><span class="lb-val">− ' + formatCurrency(sale.discount_amount || 0) + '</span></div>' +
+                    '<div class="lb-row"><span class="lb-label">Total</span><span class="lb-val" style="color:#0f6425;font-size:1rem;">' + formatCurrency(sale.total_amount) + '</span></div>' +
+                '</div>';
+        }
+
+        // Click handler — uses event delegation
+        document.addEventListener('click', function(e) {
+            // Don't trigger on delete buttons or links
+            if (e.target.closest('.delete-top-product') || e.target.closest('.delete-recent-sale') ||
+                e.target.closest('a') || e.target.closest('#dashLightboxOverlay')) return;
+
+            // Top Products — show SALES details (has data-product-sales attribute)
+            var topRow = e.target.closest('[data-product-sales]');
+            if (topRow) {
+                var pid = topRow.getAttribute('data-product-id');
+                showLoading();
+                Promise.all([
+                    supabaseClient.from('products')
+                        .select('id, product_name, product_image, sku, type, stock, cost_price, selling_price')
+                        .eq('id', pid).maybeSingle(),
+                    supabaseClient.from('sale_items')
+                        .select('quantity, unit_price, total_price, cost_price')
+                        .eq('product_id', pid)
+                        .limit(50)
+                ]).then(function(results) {
+                    var p = results[0].data;
+                    var items = results[1].data || [];
+                    if (!p) { document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Product not found</div>'; return; }
+                    var totalQty  = items.reduce(function(s,i){ return s + (parseFloat(i.quantity)||0); }, 0);
+                    var totalRev  = items.reduce(function(s,i){ return s + (parseFloat(i.total_price)||0); }, 0);
+                    var totalCost = items.reduce(function(s,i){
+                        var c = (i.cost_price !== null && i.cost_price !== undefined) ? parseFloat(i.cost_price) : (parseFloat(p.cost_price)||0);
+                        return s + c * (parseFloat(i.quantity)||0);
+                    }, 0);
+                    var profit = totalRev - totalCost;
+                    var markup = totalCost > 0 ? (profit/totalCost*100).toFixed(1)+'%' : '—';
+                    var avgPrice = totalQty > 0 ? totalRev/totalQty : 0;
+                    var stockStatus = p.stock < 1 ? '🔴 Out of Stock' : p.stock < 10 ? '🟡 Low Stock ('+p.stock+')' : '🟢 '+p.stock+' units';
+                    document.getElementById('dashLightbox').innerHTML =
+                        '<div class="lb-header">'+
+                            '<img src="'+(p.product_image||'https://via.placeholder.com/56?text=?')+'" alt="">'+
+                            '<div><div class="lb-title">'+p.product_name+'</div>'+
+                            '<div class="lb-sub">'+(p.type||'General')+(p.sku?' · SKU: '+p.sku:'')+' · Stock: '+p.stock+'</div></div>'+
+                            '<button class="lb-close" onclick="document.getElementById(\'dashLightboxOverlay\').classList.remove(\'active\')">×</button>'+
+                        '</div>'+
+                        '<div class="lb-body">'+
+                            '<div class="lb-section">Sales Performance</div>'+
+                            '<div class="lb-row"><span class="lb-label">Total Units Sold</span><span class="lb-val">'+totalQty+' units</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Total Revenue</span><span class="lb-val" style="color:#0f6425;">'+formatCurrency(totalRev)+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Total Cost</span><span class="lb-val">'+formatCurrency(totalCost)+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Gross Profit</span><span class="lb-val" style="color:#0f6425;">'+formatCurrency(profit)+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Markup %</span><span class="lb-val">'+markup+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Avg Sell Price</span><span class="lb-val">'+formatCurrency(avgPrice)+'</span></div>'+
+                            '<div class="lb-section">Product Info</div>'+
+                            '<div class="lb-row"><span class="lb-label">Cost Price</span><span class="lb-val">'+formatCurrency(p.cost_price||0)+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Selling Price</span><span class="lb-val">'+formatCurrency(p.selling_price||0)+'</span></div>'+
+                            '<div class="lb-row"><span class="lb-label">Current Stock</span><span class="lb-val">'+stockStatus+'</span></div>'+
+                            '<div class="lb-section">Actions</div>'+
+                            '<div style="display:flex;gap:8px;margin-top:4px;">'+
+                                '<a href="inventory.html" class="btn btn-sm btn-primary" style="flex:1;text-align:center;"><i class="fas fa-edit"></i> Edit Product</a>'+
+                                '<a href="sales.html" class="btn btn-sm btn-success" style="flex:1;text-align:center;"><i class="fas fa-chart-bar"></i> Full Report</a>'+
+                            '</div>'+
+                        '</div>';
+                }).catch(function() {
+                    document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Error loading data</div>';
+                });
+                return;
+            }
+
+            // Low Stock — product info click
+            var lowRow = e.target.closest('[data-product-id]');
+            if (lowRow) {
+                var pid2 = lowRow.getAttribute('data-product-id');
+                showLoading();
+                supabaseClient.from('products')
+                    .select('id, product_name, product_image, sku, type, stock, cost_price, selling_price, description')
+                    .eq('id', pid2).maybeSingle()
+                    .then(function(res) {
+                        if (res.data) renderProduct(res.data, '');
+                        else document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Product not found</div>';
+                    }).catch(function() {
+                        document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Error loading product</div>';
+                    });
+                return;
+            }
+
+            // Recent Sales — sale row click
+            var saleRow = e.target.closest('[data-sale-id]');
+            if (saleRow) {
+                var sid = saleRow.getAttribute('data-sale-id');
+                showLoading();
+                Promise.all([
+                    supabaseClient.from('sales').select('id, invoice_number, total_amount, discount_amount, payment_method, buyer_name, sold_by, created_at').eq('id', sid).maybeSingle(),
+                    supabaseClient.from('sale_items').select('product_id, quantity, unit_price, total_price').eq('sale_id', sid)
+                ]).then(function(results) {
+                    var sale = results[0].data;
+                    var items = results[1].data || [];
+                    if (!sale) { document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Sale not found</div>'; return; }
+                    var pids = [...new Set(items.filter(function(i){ return i.product_id; }).map(function(i){ return i.product_id; }))];
+                    if (pids.length === 0) { renderSale(sale, items); return; }
+                    supabaseClient.from('products').select('id, product_name').in('id', pids).then(function(pr) {
+                        var map = {};
+                        (pr.data || []).forEach(function(p) { map[p.id] = p.product_name; });
+                        items.forEach(function(i) { i.product_name = map[i.product_id] || 'Product'; });
+                        renderSale(sale, items);
+                    });
+                }).catch(function() {
+                    document.getElementById('dashLightbox').innerHTML = '<div class="lb-loading">Error loading sale</div>';
+                });
+                return;
+            }
+        });
+    })();
+    </script>
+</body>
+
+</html>
